@@ -1,16 +1,24 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 class Parser{
     private String expression;
+    private final String[] variables = {"x", "y", "z"};
+    private Scanner scanner;
 
     public Parser(String expr){
+        this.scanner = new Scanner(System.in);
         this.expression = expr;
-        System.out.println(split(expr, "+-")[0]);
-        System.out.println(split(expr, "+-")[1]);
     }
-    public int eval(){
-        return eval(expression);
+    public String eval(){
+        for(String var : variables){
+            if(expression.indexOf(var) != -1){
+                System.out.printf("%s = ", var);
+                expression = expression.replaceAll(var, String.valueOf(scanner.nextInt()));
+            }
+        }
+        return String.format("%s = %d", expression, eval(expression));
     }
 
     public boolean first(String expr, String delim){
@@ -24,6 +32,8 @@ class Parser{
             for(int j=0; j<delim.length(); j++){
                 if(expr.charAt(i) == delim.charAt(j))
                     isDelim = true;
+                if(i == 0 || expr.charAt(i-1) == delim.charAt(j))
+                    isDelim = false;
             }
             if(isDelim && p==0)
                 return true;
@@ -63,6 +73,11 @@ class Parser{
                     return eval(expr.substring(0, n)) / eval(r[0].get(l0-1));
             }
         }else{
+            if(expr.contains("^")){
+                String base = strip(expr.split("\\^")[0]);
+                String pow = strip(expr.split("\\^")[1]);
+                return (int)Math.pow(eval(base), eval(pow));
+            }
             return Integer.parseInt(expr);
         }
         return 0;
@@ -110,6 +125,8 @@ class Parser{
             for(int j=0; j<delim.length(); j++){
                 if(expr.charAt(i) == delim.charAt(j))
                     isdelim = true;
+                if(i == 0 || expr.charAt(i-1) == delim.charAt(j))
+                    isdelim = false;
             }
 
             if(isdelim && p==0){
@@ -121,24 +138,10 @@ class Parser{
         r[0].add(expr.substring(n));
         return r;
     }
-
-    public int getClose(int i){
-        if(expression.charAt(i) != '(')
-            return -1;
-        int n=1;
-        i++;
-        while(n!=0 && i < expression.length()){
-            if(expression.charAt(i) == '(')
-                n++;
-            else if(expression.charAt(i) == ')')
-                n--;
-        }
-        return -1;
-    }
 }
 public class TestMath {
     public static void main(String[] args){
-        String expr = "((5+3)/2-6*3)+1";
+        String expr = "((-x-3)^(2+1)/2-6*3)+1";
         Parser p =new Parser(expr);
         System.out.println(p.eval());
     }
